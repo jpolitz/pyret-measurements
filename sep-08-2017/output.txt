@@ -1,0 +1,33 @@
+Compiled on 803e6f3d08a90dd4bc4cf3e8ba974aa0e6aa1e74 (disable-checks), using
+-no-user-annotations -no-runtime-annotations
+
+The idea with the tail-sums is that there are three key functions used – plus,
+minus, and lessequal. This is an easy way to magnify any effects of changing
+the arity check.
+
+restargs uses:
+
+plus = function(l, r, ...rest)
+  if(typeof r !== undefined || rest.length > 0) ...
+
+nocopy uses arguments directly rather than copying into an array (and has
+strict and nonstrict versions)
+
+Clearly copying the arguments arrays is best, which is crazy to me
+
+⤇ time node tail-sum-10000000.jarr
+The program didn't define any tests.
+       23.69 real        23.48 user         0.17 sys
+
+⤇ time node tail-sum-10000000-restargs.jarr
+The program didn't define any tests.
+       27.29 real        27.20 user         0.20 sys
+
+⤇ time node tail-sum-10000000-nocopy.jarr
+The program didn't define any tests.
+       37.17 real        36.84 user         0.24 sys
+
+⤇ time node tail-sum-100000000-nocopy-nostrict.jarr
+The program didn't define any tests.
+       38.46 real        38.13 user         0.24 sys
+
