@@ -15,9 +15,16 @@ strict and nonstrict versions)
 
 Clearly copying the arguments arrays is best, which is crazy to me
 
+In addition, nocheck simply elides the arity checks, which seems to indicate
+this has no effect. I suspect the JIT simply optimizes it away.
+
 ⤇ time node tail-sum-10000000.jarr
 The program didn't define any tests.
        23.69 real        23.48 user         0.17 sys
+
+⤇ time node tail-sum-100000000-nocheck.jarr
+The program didn't define any tests.
+       23.82 real        23.48 user         0.18 sys
 
 ⤇ time node tail-sum-10000000-restargs.jarr
 The program didn't define any tests.
