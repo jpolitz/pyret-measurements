@@ -1,0 +1,82 @@
+Some explorations into the performance of getField. The program is:
+
+    o = {noticeable_field: {y: {z: 22}}}
+    builtins.raw-each-loop(lam(_):
+      o.noticeable_field.y.z
+    end, 0, 50000000)
+
+Worse: 
+
+  .inline-check takes the .dict check and the undefined check and moves them
+  directly into the code instead of having them in getField, and introduces a new
+  function that unwraps the result with isRef and isMethod checks. This makes
+  things worse
+
+No significant difference:
+
+  .noundefined-check elides a useful-for-debugging but
+  semantically useless check for undefined at the beginning of getField
+
+  .noloc elides the lookup of the location in the L list, which could in theory
+  be recovered from source maps
+
+Noticeably better:
+
+  .noGetField just uses .dict.fieldName directly instead of calling getField,
+  skipping all checks.
+
+  .value skips the isRef and isMethod checks, and just returns the
+  value directly at the end of getField
+
+  .norefcheck omits only the check for isRef, which may be directly applicable by
+  introducing a new function for ! accesses
+
+  .perilous omits all the error checking, but keeps in all the checking for isRef
+  and for isMethod. This would be reasonable to provide behind the --perilous
+  flag as an override of the getFieldLocInternal runtime method
+
+  .getter initializes the object with functions that return values, and calls
+  them directly instead of calling getField. This is interesting because it's an
+  alternative way to handle isRef and isMethod without explicitly checking for
+  them. Of course, it will make allocating objects more expensive, which this
+  test doesn't investigate
+
+
+
+(baseline)
+⤇ time node get-many-fields.jarr
+The program didn't define any tests.
+        7.02 real         6.90 user         0.11 sys
+
+⤇ time node get-many-fields.noGetField.jarr
+The program didn't define any tests.
+        4.88 real         4.78 user         0.10 sys
+
+⤇ time node get-many-fields.inline-check.jarr
+The program didn't define any tests.
+        7.80 real         7.70 user         0.10 sys
+
+⤇ time node get-many-fields.noundefined-check.jarr
+The program didn't define any tests.
+        6.83 real         6.75 user         0.09 sys
+
+⤇ time node get-many-fields.noloc.jarr
+The program didn't define any tests.
+        6.90 real         6.81 user         0.10 sys
+
+⤇ time node get-many-fields.norefcheck.jarr
+The program didn't define any tests.
+        6.39 real         6.30 user         0.09 sys
+
+⤇ time node get-many-fields.perilous.jarr
+The program didn't define any tests.
+        6.12 real         6.03 user         0.09 sys
+
+⤇ time node get-many-fields.value.jarr
+The program didn't define any tests.
+        5.85 real         5.77 user         0.09 sys
+
+⤇ time node get-many-fields.getter.jarr
+The program didn't define any tests.
+        4.91 real         4.82 user         0.09 sys
+
